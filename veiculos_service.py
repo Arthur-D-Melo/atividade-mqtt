@@ -1,10 +1,15 @@
 import json
+import os
+
 from datetime import datetime
 
 import paho.mqtt.client as mqtt
 
 from database import conectar
 
+
+MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 TOPICO_EMPLACAR = "detran/veiculos/emplacar"
 TOPICO_IPVA = "detran/veiculos/ipva"
@@ -195,8 +200,8 @@ client.on_connect = ao_conectar
 client.on_message = ao_receber
 
 client.connect(
-    "localhost",
-    1883
+    MQTT_HOST,
+    MQTT_PORT
 )
 
 print("Serviço de veículos aguardando requisições...")

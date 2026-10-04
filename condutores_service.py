@@ -1,9 +1,13 @@
 import json
+import os
 
 import paho.mqtt.client as mqtt
 
 from database import conectar
 
+
+MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 TOPICO_CADASTRAR = "detran/condutores/cadastrar"
 TOPICO_TRANSFERIR = "detran/condutores/transferir"
@@ -107,6 +111,12 @@ def transferir_proprietario(dados):
             "mensagem": "Proprietário transferido com sucesso"
         }
 
+    except Exception as erro:
+        return {
+            "sucesso": False,
+            "mensagem": str(erro)
+        }
+
     finally:
         conexao.close()
 
@@ -139,8 +149,8 @@ client.on_connect = ao_conectar
 client.on_message = ao_receber
 
 client.connect(
-    "localhost",
-    1883
+    MQTT_HOST,
+    MQTT_PORT
 )
 
 print("Serviço de condutores aguardando requisições...")

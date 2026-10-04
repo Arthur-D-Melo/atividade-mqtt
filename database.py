@@ -9,7 +9,10 @@ CAMINHO_BANCO = os.getenv(
 
 
 def conectar():
-    conexao = sqlite3.connect(CAMINHO_BANCO)
+    conexao = sqlite3.connect(
+        CAMINHO_BANCO,
+        timeout=30
+    )
 
     conexao.execute(
         "PRAGMA foreign_keys = ON"

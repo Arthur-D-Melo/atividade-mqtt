@@ -1,9 +1,13 @@
 import json
+import os
 
 import paho.mqtt.client as mqtt
 
 from database import conectar
 
+
+MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 TOPICO_LANCAR = "detran/multas/lancar"
 TOPICO_VEICULO = "detran/multas/veiculo"
@@ -242,6 +246,7 @@ def top5_condutores():
                 m.cpf_condutor,
                 c.nome,
                 SUM(m.pontuacao) AS total_pontos
+
             FROM multas m
 
             JOIN condutores c
@@ -312,8 +317,8 @@ client.on_connect = ao_conectar
 client.on_message = ao_receber
 
 client.connect(
-    "localhost",
-    1883
+    MQTT_HOST,
+    MQTT_PORT
 )
 
 print("Serviço de multas aguardando requisições...")
