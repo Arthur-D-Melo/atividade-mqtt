@@ -1,16 +1,70 @@
+import json
+
 import paho.mqtt.client as mqtt
 
+from database import conectar
 
-def ao_conectar(client, userdata, flags, reason_code, properties):
+
+TOPICO_CADASTRAR = "detran/condutores/cadastrar"
+
+
+def ao_conectar(
+    client,
+    userdata,
+    flags,
+    reason_code,
+    properties
+):
     print("Serviço de condutores conectado ao MQTT")
 
-    client.subscribe("detran/teste")
+    client.subscribe(TOPICO_CADASTRAR)
+
+
+def cadastrar_condutor(dados):
+    cpf = dados["cpf"]
+    nome = dados["nome"]
+
+    conexao = conectar()
+
+    try:
+        conexao.execute(
+            """
+            INSERT INTO condutores (cpf, nome)
+            VALUES (?, ?)
+            """,
+            (cpf, nome)
+        )
+
+        conexao.commit()
+
+        return {
+            "sucesso": True,
+            "mensagem": "Condutor cadastrado com sucesso"
+        }
+
+    except Exception as erro:
+        return {
+            "sucesso": False,
+            "mensagem": str(erro)
+        }
+
+    finally:
+        conexao.close()
 
 
 def ao_receber(client, userdata, mensagem):
-    texto = mensagem.payload.decode()
+    dados = json.loads(
+        mensagem.payload.decode()
+    )
 
-    print(f"Mensagem recebida: {texto}")
+    resposta = cadastrar_condutor(dados)
+
+    topico_resposta = dados["resposta_em"]
+
+    client.publish(
+        topico_resposta,
+        json.dumps(resposta)
+    )
 
 
 client = mqtt.Client(
@@ -25,6 +79,6 @@ client.connect(
     1883
 )
 
-print("Aguardando mensagens...")
+print("Serviço de condutores aguardando requisições...")
 
 client.loop_forever()
