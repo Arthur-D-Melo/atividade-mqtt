@@ -14,6 +14,17 @@ topico_resposta = (
 )
 
 
+TOPICO_PEDIDO = "detran/multas/lancar"
+
+DADOS = {
+    "ano": 2026,
+    "descricao": "Excesso de velocidade",
+    "pontuacao": 5,
+    "placa": "ABC1D23",
+    "resposta_em": topico_resposta
+}
+
+
 def ao_conectar(
     client,
     userdata,
@@ -21,21 +32,33 @@ def ao_conectar(
     reason_code,
     properties
 ):
-    client.subscribe(topico_resposta)
+    print("Cliente conectado ao MQTT")
 
-    dados = {
-    "placa": "ABC1D23",
-    "cpf": "98765432100",
-    "resposta_em": topico_resposta
-    }
-
-    client.publish(
-        "detran/condutores/transferir",
-        json.dumps(dados)
+    client.subscribe(
+        topico_resposta
     )
 
 
-def ao_receber(client, userdata, mensagem):
+def ao_inscrever(
+    client,
+    userdata,
+    mid,
+    reason_codes,
+    properties
+):
+    print("Inscrição no tópico de resposta confirmada")
+
+    client.publish(
+        TOPICO_PEDIDO,
+        json.dumps(DADOS)
+    )
+
+
+def ao_receber(
+    client,
+    userdata,
+    mensagem
+):
     resposta = json.loads(
         mensagem.payload.decode()
     )
@@ -50,6 +73,7 @@ client = mqtt.Client(
 )
 
 client.on_connect = ao_conectar
+client.on_subscribe = ao_inscrever
 client.on_message = ao_receber
 
 client.connect(
