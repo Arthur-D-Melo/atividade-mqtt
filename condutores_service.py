@@ -6,6 +6,7 @@ from database import conectar
 
 
 TOPICO_CADASTRAR = "detran/condutores/cadastrar"
+TOPICO_TRANSFERIR = "detran/condutores/transferir"
 
 
 def ao_conectar(
@@ -18,6 +19,7 @@ def ao_conectar(
     print("Serviço de condutores conectado ao MQTT")
 
     client.subscribe(TOPICO_CADASTRAR)
+    client.subscribe(TOPICO_TRANSFERIR)
 
 
 def cadastrar_condutor(dados):
@@ -52,17 +54,79 @@ def cadastrar_condutor(dados):
         conexao.close()
 
 
+def transferir_proprietario(dados):
+    placa = dados["placa"]
+    novo_cpf = dados["cpf"]
+
+    conexao = conectar()
+
+    try:
+        condutor = conexao.execute(
+            """
+            SELECT cpf
+            FROM condutores
+            WHERE cpf = ?
+            """,
+            (novo_cpf,)
+        ).fetchone()
+
+        if condutor is None:
+            return {
+                "sucesso": False,
+                "mensagem": "Novo proprietário não cadastrado"
+            }
+
+        veiculo = conexao.execute(
+            """
+            SELECT placa
+            FROM veiculos
+            WHERE placa = ?
+            """,
+            (placa,)
+        ).fetchone()
+
+        if veiculo is None:
+            return {
+                "sucesso": False,
+                "mensagem": "Veículo não encontrado"
+            }
+
+        conexao.execute(
+            """
+            UPDATE veiculos
+            SET cpf_condutor = ?
+            WHERE placa = ?
+            """,
+            (novo_cpf, placa)
+        )
+
+        conexao.commit()
+
+        return {
+            "sucesso": True,
+            "mensagem": "Proprietário transferido com sucesso"
+        }
+
+    finally:
+        conexao.close()
+
+
 def ao_receber(client, userdata, mensagem):
     dados = json.loads(
         mensagem.payload.decode()
     )
 
-    resposta = cadastrar_condutor(dados)
+    if mensagem.topic == TOPICO_CADASTRAR:
+        resposta = cadastrar_condutor(dados)
 
-    topico_resposta = dados["resposta_em"]
+    elif mensagem.topic == TOPICO_TRANSFERIR:
+        resposta = transferir_proprietario(dados)
+
+    else:
+        return
 
     client.publish(
-        topico_resposta,
+        dados["resposta_em"],
         json.dumps(resposta)
     )
 

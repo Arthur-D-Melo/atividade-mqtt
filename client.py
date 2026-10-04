@@ -25,11 +25,12 @@ def ao_conectar(
 
     dados = {
     "placa": "ABC1D23",
+    "cpf": "98765432100",
     "resposta_em": topico_resposta
     }
 
     client.publish(
-        "detran/veiculos/ipva",
+        "detran/condutores/transferir",
         json.dumps(dados)
     )
 
