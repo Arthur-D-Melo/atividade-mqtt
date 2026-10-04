@@ -71,6 +71,12 @@ Calcular o IPVA:
 docker compose run --rm client python client.py ipva ABC1D23
 ```
 
+Cadastrar o novo proprietário:
+
+```bash
+docker compose run --rm client python client.py cadastrar-condutor 98765432100 Joao
+```
+
 Transferir o proprietário:
 
 ```bash
@@ -98,7 +104,7 @@ docker compose run --rm client python client.py multas-veiculo ABC1D23 2026
 Consultar multas de um condutor:
 
 ```bash
-docker compose run --rm client python client.py multas-condutor 12345678900 2026
+docker compose run --rm client python client.py multas-condutor 98765432100 2026
 ```
 
 Consultar multas lançadas em um ano:
