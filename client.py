@@ -7,7 +7,6 @@ import paho.mqtt.client as mqtt
 BROKER = "localhost"
 PORTA = 1883
 
-
 id_requisicao = str(uuid.uuid4())
 
 topico_resposta = (
@@ -25,13 +24,12 @@ def ao_conectar(
     client.subscribe(topico_resposta)
 
     dados = {
-        "cpf": "12345678900",
-        "nome": "Arthur",
-        "resposta_em": topico_resposta
+    "placa": "ABC1D23",
+    "resposta_em": topico_resposta
     }
 
     client.publish(
-        "detran/condutores/cadastrar",
+        "detran/veiculos/ipva",
         json.dumps(dados)
     )
 
